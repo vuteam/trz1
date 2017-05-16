@@ -709,6 +709,15 @@ void eDVBDB::loadBouquet(const char *path)
 	eDebug("%d entries in Bouquet %s", entries, bouquet_name.c_str());
 }
 
+void eDVBDB::setNumberingMode(bool numberingMode)
+{
+	if (m_numbering_mode != numberingMode)
+	{
+		m_numbering_mode = numberingMode;
+		renumberBouquet();
+	}
+}
+
 void eDVBDB::reloadBouquets()
 {
 	m_bouquets.clear();
