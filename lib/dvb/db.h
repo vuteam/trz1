@@ -27,6 +27,7 @@ class eDVBDB: public iDVBChannelList
 	std::map<eServiceReferenceDVB, ePtr<eDVBService> > m_services;
 	
 	std::map<std::string, eBouquet> m_bouquets;
+	bool m_numbering_mode;
 #ifdef SWIG
 	eDVBDB();
 	~eDVBDB();
@@ -63,9 +64,11 @@ public:
 	eServiceReference searchReference(int tsid, int onid, int sid);
 	eDVBDB();
 	virtual ~eDVBDB();
+	int renumberBouquet(eBouquet &bouquet, int startChannelNum = 1);
 #endif
 	void loadServicelist(const char *filename);
 	void setNumberingMode(bool numberingMode);
+	void renumberBouquet();
 	static eDVBDB *getInstance() { return instance; }
 	void reloadServicelist();
 	void saveServicelist();
