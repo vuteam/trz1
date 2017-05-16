@@ -1955,7 +1955,7 @@ RESULT eDVBChannel::getDemux(ePtr<iDVBDemux> &demux, int cap)
 {
 	ePtr<eDVBAllocatedDemux> &our_demux = (cap & capDecode) ? m_decoder_demux : m_demux;
 
-	if (m_frontend == 0)
+	if (m_frontend)
 	{
 		/* in dvr mode, we have to stick to a single demux (the one connected to our dvr device) */
 		our_demux = m_decoder_demux ? m_decoder_demux : m_demux;
