@@ -808,7 +808,6 @@ eDVBDB *eDVBDB::instance;
 using namespace xmlcc;
 
 eDVBDB::eDVBDB()
-	: m_numbering_mode(false);	
 {
 	instance = this;
 	reloadServicelist();
