@@ -484,6 +484,20 @@ void eListboxServiceContent::setSize(const eSize &size)
 		setVisualMode(m_visual_mode);
 }
 
+void eListboxServiceContent::setHideNumberMarker(bool doHide)
+{
+	m_hide_number_marker = doHide;
+}
+
+void eListboxServiceContent::setGetPiconNameFunc(ePyObject func)
+{
+	if (m_GetPiconNameFunc)
+		Py_DECREF(m_GetPiconNameFunc);
+	m_GetPiconNameFunc = func;
+	if (m_GetPiconNameFunc)
+		Py_INCREF(m_GetPiconNameFunc);
+}
+
 void eListboxServiceContent::paint(gPainter &painter, eWindowStyle &style, const ePoint &offset, int selected)
 {
 	painter.clip(eRect(offset, m_itemsize));
