@@ -27,6 +27,7 @@ RESULT eBouquet::addService(const eServiceReference &ref, eServiceReference befo
 	}
 	else
 		m_services.push_back(ref);
+	eDVBDB::getInstance()->renumberBouquet();
 	return 0;
 }
 
@@ -37,6 +38,7 @@ RESULT eBouquet::removeService(const eServiceReference &ref)
 	if ( it == m_services.end() )
 		return -1;
 	m_services.erase(it);
+	eDVBDB::getInstance()->renumberBouquet();
 	return 0;
 }
 
@@ -69,6 +71,7 @@ RESULT eBouquet::moveService(const eServiceReference &ref, unsigned int pos)
 		else
 			std::iter_swap(source--, source);
 	}
+	eDVBDB::getInstance()->renumberBouquet();
 	return 0;
 }
 
@@ -709,15 +712,6 @@ void eDVBDB::loadBouquet(const char *path)
 	eDebug("%d entries in Bouquet %s", entries, bouquet_name.c_str());
 }
 
-void eDVBDB::setNumberingMode(bool numberingMode)
-{
-	if (m_numbering_mode != numberingMode)
-	{
-		m_numbering_mode = numberingMode;
-		renumberBouquet();
-	}
-}
-
 void eDVBDB::reloadBouquets()
 {
 	m_bouquets.clear();
@@ -756,6 +750,57 @@ void eDVBDB::reloadBouquets()
 		parent.m_services.push_back(ref);
 		parent.flushChanges();
 	}
+	renumberBouquet();
+}
+
+void eDVBDB::renumberBouquet()
+{
+	eDebug("[eDVBDB] Renumbering...");
+	renumberBouquet( m_bouquets["bouquets.tv"] );
+	renumberBouquet( m_bouquets["bouquets.radio"] );
+}
+
+void eDVBDB::setNumberingMode(bool numberingMode)
+{
+	if (m_numbering_mode != numberingMode)
+	{
+		m_numbering_mode = numberingMode;
+		renumberBouquet();
+	}
+}
+
+int eDVBDB::renumberBouquet(eBouquet &bouquet, int startChannelNum)
+{
+	std::list<eServiceReference> &list = bouquet.m_services;
+	for (std::list<eServiceReference>::iterator it = list.begin(); it != list.end(); ++it)
+	{
+		eServiceReference &ref = *it;
+		if (ref.flags & eServiceReference::canDescent)
+		{
+			std::string filename = ref.toString();
+			size_t pos = filename.find("FROM BOUQUET ");
+			if(pos != std::string::npos)
+			{
+				char endchr = filename[pos+13];
+				if (endchr == '"')
+				{
+					char *beg = &filename[pos+14];
+					char *end = strchr(beg, endchr);
+					filename.assign(beg, end - beg);
+					eBouquet &subBouquet = m_bouquets[filename];
+					if (m_numbering_mode || filename.find("alternatives.") == 0)
+						renumberBouquet(subBouquet);
+					else
+						startChannelNum = renumberBouquet(subBouquet, startChannelNum);
+				}
+			}
+		}
+		if( !(ref.flags & (eServiceReference::isMarker|eServiceReference::isDirectory)) ||
+		   (ref.flags & eServiceReference::isNumberedMarker) )
+			ref.number = startChannelNum++;
+
+	}
+	return startChannelNum;
 }
 
 eDVBDB *eDVBDB::instance;
@@ -763,6 +808,7 @@ eDVBDB *eDVBDB::instance;
 using namespace xmlcc;
 
 eDVBDB::eDVBDB()
+	: m_numbering_mode(false);	
 {
 	instance = this;
 	reloadServicelist();
