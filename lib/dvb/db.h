@@ -65,6 +65,7 @@ public:
 	virtual ~eDVBDB();
 #endif
 	void loadServicelist(const char *filename);
+	void setNumberingMode(bool numberingMode);
 	static eDVBDB *getInstance() { return instance; }
 	void reloadServicelist();
 	void saveServicelist();
